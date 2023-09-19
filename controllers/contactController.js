@@ -1,115 +1,170 @@
-const {
-  listContacts: list,
-  getContactById: getById,
-  removeContact: remove,
-  addContact: add,
-  updateContact: update,
-} = require("../models/contacts");
-const Joi = require("joi");
+const service = require("../service/contactModel");
 
-const schemaCreateContacts = Joi.object({
-  name: Joi.string().required(),
-  email: Joi.string().required(),
-  phone: Joi.string().required(),
-})
-
-const schemaUpdateContacts = Joi.object({
-  name: Joi.string(),
-  email: Joi.string(),
-  phone: Joi.string(),
-})
-.or("name", "email", "phone")
-
-
-const listContacts = async (req, res, next) => {
-  const contacts = await list();
-  res.status(200).json(contacts);
-};
-
-const getContactById = async (req, res, next) => {
-  const id = req.params.contactId;
-  const contact = await getById(id);
-  if(!contact){
-    res.status(404).json({message: "Not found"});
-  }else{
-    res.status(200).json(contact)
+const get = async (req, res, next) => {
+  try {
+    const results = await service.getAllContacts();
+    res.json({
+      status: "success",
+      code: 200,
+      data: {
+        contacts: results,
+      },
+    });
+  } catch (e) {
+    console.error(e);
+    next(e);
   }
 };
 
-const addContact = async (req, res, next) => {
-  const {name, email, phone} = req.body;
-  const { error, value } = schemaCreateContacts.validate({ name, phone, email })
-  if (error) {
-    return res.status(400).json({ message: "missing required name field" });
+const getById = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const result = await service.getContactById(id);
+    if (result) {
+      res.json({
+        status: "success",
+        code: 200,
+        data: {
+          contact: result,
+        },
+      });
+    } else {
+      res.status(404).json({
+        status: "error",
+        code: 404,
+        message: `Contact not found by id ${id}`,
+        data: "Not found",
+      });
+    }
+  } catch (e) {
+    console.error(e);
+    next(e);
   }
-  const addContact = await add(value)
-  res.json({
-    status: 'success',
-    code: 201,
-    data: {
-      addContact
-    },
-  })
+};
 
-  // if(!name|| !email || !phone ){
-  //   res.status(400).json({message: "missing required name field"});
-  // }else{
-  //   const contacts = await add(req.body);
-  //   res.status(201).json(contacts);
-  // }
-}
-
-const removeContact = async (req, res, next) => {
-  const { contactId } = req.params;
-
-  const deleteContact = await remove(contactId)
-  if (deleteContact === null) {
-    return res.status(404).json({ message: "Not found" });
+const create = async (req, res, next) => {
+  const { name, email, phone, favorite } = req.body;
+  try {
+    const result = await service.createContact({
+      name,
+      email,
+      phone,
+      favorite,
+    });
+    res.json({
+      status: "success",
+      code: 201,
+      data: {
+        contact: result,
+      },
+    });
+  } catch (e) {
+    console.error(e);
+    next(e);
   }
-  res.json({
-    code: 200,
-    message: "contact deleted"
-  })
-  // const id = req.params.contactId;
-  // const contacts = await remove(id);
-  // if(!contacts){
-  //   res.status(404).json({message: "Not found"});
-  // }else{
-  //   res.status(200).json(contacts)
-  // }
-}
+};
 
-const updateContact =async (req, res, next) => {
-  const { contactId } = req.params;
-  const { name, phone, email } = req.body;
-  const { error, value } = schemaUpdateContacts.validate({ name, phone, email })
-
-  if (error) {
-    return res.status(400).json({ message: "missing fields" });
+const update = async (req, res, next) => {
+  const { id } = req.params;
+  const { name, email, phone, favorite } = req.body;
+  try {
+    const result = await service.updateContact(id, {
+      name,
+      email,
+      phone,
+      favorite,
+    });
+    if (result) {
+      res.json({
+        status: "success",
+        code: 200,
+        data: {
+          contact: result,
+        },
+      });
+    } else {
+      res.status(404).json({
+        status: "error",
+        code: 404,
+        message: `Contact not found by id ${id}`,
+        data: "Not found",
+      });
+    }
+  } catch (e) {
+    console.error(e);
+    next(e);
   }
+};
 
-  const updContact = await update(contactId, value)
-
-  if (updContact === null) {
-    return res.status(404).json({ message: "Not found" });
+const updateFavorite = async (req, res, next) => {
+  const { id } = req.params;
+  const { favorite } = req.body;
+  try {
+    if (favorite === undefined) {
+      res.status(400).json({
+        status: "error",
+        code: 400,
+        message: `missing field favorite`,
+        data: "Not found",
+      });
+      return;
+    }
+    const result = await service.updateContact(id, {
+      favorite,
+    });
+    if (result) {
+      res.json({
+        status: "success",
+        code: 200,
+        data: {
+          contact: result,
+        },
+      });
+    } else {
+      res.status(404).json({
+        status: "error",
+        code: 404,
+        message: `Contact not found by id ${id}`,
+        data: "Not found",
+      });
+    }
+  } catch (e) {
+    console.error(e);
+    next(e);
   }
+};
 
-  res.json({
-    status: 'success',
-    code: 200,
-    data: {
-      updContact
-    },
-  })
-  // const id = req.params.contactId;
-  // const contacts = await update(id, req.body);
-  // res.json(contacts);
-}
+const remove = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const result = await service.removeContact(id);
+    if (result) {
+      res.json({
+        status: "success",
+        code: 200,
+        data: {
+          contact: result,
+        },
+      });
+    } else {
+      res.status(404).json({
+        status: "error",
+        code: 404,
+        message: `Contact not found by id ${id}`,
+        data: "Not found",
+      });
+    }
+  } catch (e) {
+    console.error(e);
+    next(e);
+  }
+};
 
 module.exports = {
-  listContacts,
-  getContactById,
-  removeContact,
-  addContact,
-  updateContact
+  get,
+  getById,
+  create,
+  update,
+  updateFavorite,
+  remove,
 };
