@@ -5,7 +5,13 @@ const signupCtrl = require("../controllers/signup.controller");
 const loginCtrl = require("../controllers/login.controller");
 const meCtrl = require("../controllers/me.controller");
 const auth = require("../middleware/auth");
-const {createContact} = require("../service/contactModel");
+const {
+  createContact,
+  getAllContacts,
+  getContactById,
+  updateContact,
+  removeContact,
+} = require("../service/contactModel");
 
 const invalidatedTokens = new Set();
 
@@ -58,16 +64,141 @@ router.post("/contacts", validToken, auth, async (req, res, next) => {
   }
 });
 
-// router.get("/", ctrlContact.get);
+router.get("/contacts", validToken, auth, async (req, res, next) => {
+  const owner = req.user._id;
+  try {
+    const result = await getAllContacts({ owner });
+    res.status(200).json({
+      status: "success",
+      code: 200,
+      data: { contact: result },
+    });
+  } catch (e) {
+    next(e);
+  }
+});
 
-// router.get("/:id", ctrlContact.getById);
+router.get("/contacts/:id", validToken, auth, async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const result = await getContactById(id);
+    if (result) {
+      res.json({
+        status: "success",
+        code: 200,
+        data: {
+          contact: result,
+        },
+      });
+    } else {
+      res.status(404).json({
+        status: "error",
+        code: 404,
+        message: `Contact not found by id ${id}`,
+        data: "Not found",
+      });
+    }
+  } catch (e) {
+    next(e);
+  }
+});
 
-// router.post("/", ctrlContact.create);
+router.put("/contacts/:id", validToken, auth, async (req, res, next) => {
+  const { id } = req.params;
+  const { name, email, phone, favorite } = req.body;
+  try {
+    const result = await updateContact(id, {
+      name,
+      email,
+      phone,
+      favorite,
+    });
+    if (result) {
+      res.json({
+        status: "success",
+        code: 200,
+        data: {
+          contact: result,
+        },
+      });
+    } else {
+      res.status(404).json({
+        status: "error",
+        code: 404,
+        message: `Contact not found by id ${id}`,
+        data: "Not found",
+      });
+    }
+  } catch (e) {
+    next(e);
+  }
+});
 
-// router.put("/:id", ctrlContact.update);
+router.delete("/contacts/:id", validToken, auth, async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const result = await removeContact(id);
+    if (result) {
+      res.json({
+        status: "success",
+        code: 200,
+        data: {
+          contact: result,
+        },
+      });
+    } else {
+      res.status(404).json({
+        status: "error",
+        code: 404,
+        message: `Contact not found by id ${id}`,
+        data: "Not found",
+      });
+    }
+  } catch (e) {
+    next(e);
+  }
+});
 
-// router.patch("/:id/favorite", ctrlContact.updateFavorite);
-
-// router.delete("/:id", ctrlContact.remove);
+router.patch(
+  "/contacts/:id/favorite",
+  validToken,
+  auth,
+  async (req, res, next) => {
+    const { id } = req.params;
+    const { favorite } = req.body;
+    try {
+      if (favorite === undefined) {
+        res.status(400).json({
+          status: "error",
+          code: 400,
+          message: `missing field favorite`,
+          data: "Not found",
+        });
+        return;
+      }
+      const result = await updateContact(id, {
+        favorite,
+      });
+      if (result) {
+        res.json({
+          status: "success",
+          code: 200,
+          data: {
+            contact: result,
+          },
+        });
+      } else {
+        res.status(404).json({
+          status: "error",
+          code: 404,
+          message: `Contact not found by id ${id}`,
+          data: "Not found",
+        });
+      }
+    } catch (e) {
+      next(e);
+    }
+  }
+);
 
 module.exports = router;
