@@ -8,12 +8,13 @@ const contactsRouter = require("./api/contactsView");
 
 const app = express();
 app.use(express.json());
+// app.use(express.static("public"));
+app.use(express.static(__dirname));
 app.use(cors());
 
 require("./config/config-passport");
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 app.use(logger(formatsLogger));
-app.use(express.static("public"))
 
 app.use("/api", contactsRouter);
 
