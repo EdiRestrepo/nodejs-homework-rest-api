@@ -13,6 +13,7 @@ app.use(cors());
 require("./config/config-passport");
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 app.use(logger(formatsLogger));
+app.use(express.static("public"))
 
 app.use("/api", contactsRouter);
 

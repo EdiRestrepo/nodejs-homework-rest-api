@@ -2,6 +2,8 @@ const User = require("../service/schemas/users");
 const jwt = require("jsonwebtoken");
 const { getUserByEmail } = require("../service/userService");
 require("dotenv").config();
+const {Conflict} = require("http-errors");
+const gravatar = require("gravatar");
 const secret = process.env.SECRET;
 
 const signupCtrl = async (req, res, next) => {
@@ -16,7 +18,8 @@ const signupCtrl = async (req, res, next) => {
     });
   }
   try {
-    const newUser = new User({ username, email, subscription, token });
+    const avatarURL = gravatar.url(email);
+    const newUser = new User({ username, email, subscription, token, avatarURL });
     newUser.setPassword(password);
     await newUser.save();
     res.status(201).json({
