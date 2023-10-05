@@ -1,4 +1,4 @@
-const { User } = require("../service/schemas/users");
+const User = require("../service/schemas/users");
 const path = require("path");
 const fs = require("fs/promises");
 
