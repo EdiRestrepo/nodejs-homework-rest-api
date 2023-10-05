@@ -4,7 +4,8 @@ const router = express.Router();
 const signupCtrl = require("../controllers/signup.controller");
 const loginCtrl = require("../controllers/login.controller");
 const meCtrl = require("../controllers/me.controller");
-const auth = require("../middleware/auth");
+const updateAvatarCtrl = require("../controllers/updateAvatar")
+const {auth, upload, ctrlWrapper} = require("../middleware");
 const {
   createContact,
   getAllContacts,
@@ -35,6 +36,9 @@ router.post("/users/signup", signupCtrl);
 router.post("/users/login", loginCtrl);
 
 router.get("/users/current", validToken, auth, meCtrl);
+
+router.patch("/users/avatars",validToken, auth, upload.single("avatar"), ctrlWrapper(updateAvatarCtrl) );
+
 
 router.post("/users/logout", validToken, auth, (req, res, next) => {
   const authHeader = req.headers.authorization;
