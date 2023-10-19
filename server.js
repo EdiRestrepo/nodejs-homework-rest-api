@@ -5,6 +5,7 @@ const connection = require("./db/connection");
 require("dotenv").config();
 
 const contactsRouter = require("./api/contactsView");
+const { getUserByVerificationToken } = require("./service/userService");
 
 const app = express();
 app.use(express.json());
@@ -17,6 +18,20 @@ const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 app.use(logger(formatsLogger));
 
 app.use("/api", contactsRouter);
+
+// app.get('users/verify/:verificationToken', async (req, res, next) =>{
+//   try{
+
+//     const existingUser = await getUserByVerificationToken(req.params.verificationToken)
+//     if(existingUser){
+//       res.send()
+//     }else{
+//       next("User not found")
+//     }
+//   }catch(err){
+//     next(err)
+//   }
+// })
 
 app.use((req, res) => {
   res.status(404).json({
