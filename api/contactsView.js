@@ -13,6 +13,8 @@ const {
   updateContact,
   removeContact,
 } = require("../service/contactModel");
+const emailVerify = require("../controllers/emailVerify");
+const resendVerificationEmailCtrl = require("../controllers/resendEmail");
 
 const invalidatedTokens = new Set();
 
@@ -38,6 +40,10 @@ router.post("/users/login", loginCtrl);
 router.get("/users/current", validToken, auth, meCtrl);
 
 router.patch("/users/avatars",validToken, auth, upload.single("avatar"), ctrlWrapper(updateAvatarCtrl) );
+
+router.get("/users/verify/:verificationToken", validToken, emailVerify);
+
+router.post("/users/verify", resendVerificationEmailCtrl);
 
 
 router.post("/users/logout", validToken, auth, (req, res, next) => {

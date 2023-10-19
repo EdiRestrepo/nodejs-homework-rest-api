@@ -7,21 +7,21 @@ const userSchema = new Schema({
   username: {
     type: String,
     required: [true, "Username required"],
-    unique: true
+    unique: true,
   },
   email: {
     type: String,
     required: [true, "Email required"],
-    unique: true
+    unique: true,
   },
   password: {
     type: String,
-    required: [true, "Password required"]
+    required: [true, "Password required"],
   },
   subscription: {
     type: String,
     enum: ["starter", "pro", "business"],
-    default: "starter"
+    default: "starter",
   },
   token: {
     type: String,
@@ -29,15 +29,23 @@ const userSchema = new Schema({
   },
   avatarURL: {
     type: String,
-    required: true
-}
+    required: true,
+  },
+  verify: {
+    type: Boolean,
+    default: false,
+  },
+  verificationToken: {
+    type: String,
+    required: [true, 'Verify token is required'],
+  },
 });
 
-userSchema.methods.setPassword = function(password) {
+userSchema.methods.setPassword = function (password) {
   this.password = bCrypt.hashSync(password, bCrypt.genSaltSync(6));
 };
 
-userSchema.methods.validPassword = function(password) {
+userSchema.methods.validPassword = function (password) {
   return bCrypt.compareSync(password, this.password);
 };
 
